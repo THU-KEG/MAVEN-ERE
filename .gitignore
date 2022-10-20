@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/*
+**/output/*
+MAVEN
+*.zip
+StructTempRel-EMNLP17
+!data/*.py
+!data/*.sh
+NeuralTemporalRelation-EMNLP19
+.history
+**_ignore
