@@ -35,7 +35,7 @@ class EventEncoder(nn.Module):
                         embed.append(doc_embed[j][span[0]:span[1]].mean(0))
                     else:
                         raise NotImplementedError
-            event_embed.append(torch.stack(embed)) # n_event, embed_dim
+            event_embed.append(torch.stack(embed))
         return event_embed
 
 class Score(nn.Module):
