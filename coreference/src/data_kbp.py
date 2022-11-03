@@ -31,16 +31,11 @@ def split_spans(point, spans):
 def tokenize_sent(text):
     return nltk.sent_tokenize(text)
 
-# def type_tokens(type_str):
-#     return [f"<{type_str}>", f"<{type_str}/>"]
-
 class Document:
     def __init__(self, data):
         self.id = data["id"]
         self.original_text = data["text"]
         self.text = tokenize_sent(data["text"])
-        # print(self.text)
-        # self.merged_events = data["merged_events"]
         self.events = data["events"]
         
         # self.flatten()
@@ -48,7 +43,6 @@ class Document:
     
     def event_id(self, event):
         return event["id"]
-        # return event["word"] + "_" + str(event["position"][0])
     
     def add_sent_id(self, events):
         new_events = []
@@ -81,7 +75,6 @@ class Document:
         return new_events
     
     def populate_event_spans(self):
-        # lengths = [len(sent) for sent in self.words]
         event_mentions = [] # {"id": int, "trigger_word": str, "position":[],}
         merged_events = []
         for event in self.events:
@@ -229,15 +222,6 @@ def get_dataloader(tokenizer, split, data_dir="../data/processed/KBP", max_lengt
 if __name__ == "__main__":
     from transformers import RobertaTokenizer
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    # tokens = get_special_tokens()
-    # print(tokens)
-    # tokenizer.add_special_tokens(tokens)
-    # n = tokenizer.add_tokens(tokens)
-    # print(n)
-    # dataset = myDataset(tokenizer, "../data/", "test")
-    # print(dataset[0])
-    # print(dataset[1])
-    # print(dataset[2])
     dataloader = get_dataloader(tokenizer, "train", data_dir="../../data/processed/KBP", shuffle=False, max_length=512, batch_size=1)
     for data in dataloader:
         print(data["input_ids"].size())
@@ -248,14 +232,3 @@ if __name__ == "__main__":
             for sp in sp_list:
                 print(tokenizer.decode(data["input_ids"][j][sp[0]:sp[1]]))
         break
-# %%
-# import json
-# file = "../../data/processed/ACE/dev.jsonl"
-# with open(file)as f:
-#     lines = f.readlines()
-# for line in lines[:50]:
-#     data = json.loads(line)
-#     # print(data.keys())
-#     print(data["events"])
-#     # break
-# %%

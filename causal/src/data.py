@@ -102,7 +102,6 @@ class myDataset(Dataset):
                 self.examples.append(doc)
     
     def tokenize(self):
-        # {input_ids, event_spans, event_group}
         self.tokenized_samples = []
         for example in tqdm(self.examples, desc="tokenizing"):
             event_spans = [] # [[(start, end)], [],...]

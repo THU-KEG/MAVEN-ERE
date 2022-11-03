@@ -31,8 +31,6 @@ REL2ID_DICT = { # always put None type at the last
     }
 }
 
-# REL2ID_DICT["tcr"] = REL2ID_DICT["matres"]
-
 INVERSE_REL_DICT = {
     "matres": {
         "BEFORE": "AFTER",
@@ -55,9 +53,6 @@ BIDIRECTIONAL_REL_DICT = {
     "tcr": ["SIMULTANEOUS"]
 }
 
-# BIDIRECTIONAL_REL_DICT["tcr"] = BIDIRECTIONAL_REL_DICT["matres"]
-
-
 NONE_REL_DICT = {
     "matres": "NONE",
     "tb-dense": "VAGUE"
@@ -72,10 +67,6 @@ EVAL_EXCLUDE = {
 }
 
 EVAL_EXCLUDE["tcr"] = EVAL_EXCLUDE["matres"]
-
-# def get_assset(data):
-#     rel2id = 
-#     return 
 
 ERROR = 0
 
@@ -108,7 +99,6 @@ class Document:
             self.events += data["timexes"]
         self.relations = data["relations"]
         self.dataname = dataname.lower()
-        # print(self.relations.keys())
         
         self.sort_events()
         self.get_labels(ignore_nonetype, istrain)
@@ -187,7 +177,6 @@ class myDataset(Dataset):
                 self.examples.append(doc)
     
     def tokenize(self):
-        # {input_ids, event_spans, event_group}
         self.tokenized_samples = []
         for example in tqdm(self.examples, desc="tokenizing"):
             event_spans = [] # [[(start, end)], [],...]
@@ -224,16 +213,13 @@ class myDataset(Dataset):
                 tmp_input_ids.append(self.tokenizer.sep_token_id)
 
                 if len(sub_input_ids) + len(tmp_input_ids) <= self.max_length:
-                    # print(len(sub_input_ids) + len(tmp_input_ids))
                     sub_event_spans += [(sp[0]+len(sub_input_ids), sp[1]+len(sub_input_ids)) for sp in tmp_event_spans]
                     sub_input_ids += tmp_input_ids
                 else:
-                    # print("exceed max length! truncate")
                     assert len(sub_input_ids) <= self.max_length
                     input_ids.append(sub_input_ids)
                     event_spans.append(sub_event_spans)
 
-                    # assert len(tmp_input_ids) < self.max_length, print("A sentence too long!\n %s" % " ".join(words[sent_id])) # 3580:
                     while len(tmp_input_ids) >= self.max_length:
                         split_point = self.max_length - 1
                         while not valid_split(split_point, tmp_event_spans):
@@ -245,7 +231,6 @@ class myDataset(Dataset):
                         event_spans.append([(sp[0]+1, sp[1]+1) for sp in tmp_event_spans_part1])
 
                         tmp_event_spans = [(sp[0]-len(tmp_input_ids_part1), sp[1]-len(tmp_input_ids_part1)) for sp in tmp_event_spans]
-                        # sub_input_ids = [self.tokenizer.cls_token_id] + tmp_input_ids_part2
 
                     sub_event_spans = [(sp[0]+1, sp[1]+1) for sp in tmp_event_spans]
                     sub_input_ids = [self.tokenizer.cls_token_id] + tmp_input_ids

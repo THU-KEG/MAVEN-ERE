@@ -115,10 +115,6 @@ if __name__ == "__main__":
     set_seed(args.seed)
     
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    # tokens = get_special_tokens()
-
-    # n = tokenizer.add_tokens(tokens)
-
     print("loading data...")
     if not args.eval_only:
         train_dataloader = get_dataloader(tokenizer, "train", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=True, batch_size=args.batch_size, sample_rate=args.sample_rate)
@@ -128,7 +124,6 @@ if __name__ == "__main__":
     print("loading model...")
     model = Model(len(tokenizer), out_dim=label_num)
     model = to_cuda(model)
-    # inner_model = model.module if isinstance(nn.DataParallel) else model
 
     if not args.eval_only:
         bert_optimizer = AdamW([p for p in model.encoder.model.parameters() if p.requires_grad], lr=args.bert_lr)
@@ -183,12 +178,9 @@ if __name__ == "__main__":
                     res = classification_report(label_list, pred_list, output_dict=True, target_names=REPORT_CLASS_NAMES, labels=REPORT_CLASS_LABELS)
                     print("Train result:", res)
                     
-
-                    # print("Train %d steps %s: precision=%.4f, recall=%.4f, f1=%.4f" % (glb_step, name, *res))
                     train_losses = []
                     pred_list = []
                     label_list = []
-
 
                 if glb_step % args.eval_steps == 0:
                     res = evaluate(model, dev_dataloader, desc="Validation")
@@ -203,7 +195,6 @@ if __name__ == "__main__":
                         state = {"model":model.state_dict(), "optimizer":optimizer.state_dict(), "scheduler": scheduler.state_dict()}
                         torch.save(state, os.path.join(output_dir, "best"))
 
-    
     print("*" * 30 + "Predict"+ "*" * 30)
     if os.path.exists(os.path.join(output_dir, "best")):
         print("loading from", os.path.join(output_dir, "best"))

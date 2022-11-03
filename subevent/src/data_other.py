@@ -242,16 +242,9 @@ def collator(data):
     for d in data:
         for k in d:
             collate_data[k].append(d[k])
-            # if k == "label_groups":
-            #     print(collate_data[k])
     lengths = [ids.size(0) for ids in collate_data["input_ids"]]
     for l in lengths:
         collate_data["splits"].append(collate_data["splits"][-1]+l)
-    # max_length = max(lengths)
-    # for i, ids in enumerate(collate_data["input_ids"]):
-    #     if ids.size(0) < max_length:
-    #         collate_data["input_ids"][i] = torch.nn.functional.pad(ids, (0,0,0,max_length-ids.size(0)), mode="constant", value=0)
-    #         collate_data["attention_mask"][i] = torch.nn.functional.pad(collate_data["attention_mask"][i], (0,0,0,max_length-ids.size(0)), mode="constant", value=0)
 
     collate_data["input_ids"] = torch.cat(collate_data["input_ids"])
     collate_data["attention_mask"] = torch.cat(collate_data["attention_mask"])
@@ -266,15 +259,6 @@ def get_dataloader(tokenizer, split, dataname, data_dir="../data", max_length=12
 if __name__ == "__main__":
     from transformers import RobertaTokenizer
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    # tokens = get_special_tokens()
-    # # print(tokens)
-    # # tokenizer.add_special_tokens(tokens)
-    # n = tokenizer.add_tokens(tokens)
-    # print(n)
-    # dataset = myDataset(tokenizer, "../data/", "test")
-    # print(dataset[0])
-    # print(dataset[1])
-    # print(dataset[2])
     dataloader = get_dataloader(tokenizer, "train", "EventStoryLine", data_dir = "../../data/processed/EventStoryLine", shuffle=False, max_length=512)
     print(ERROR)
     for data in dataloader:

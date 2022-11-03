@@ -3,8 +3,6 @@ import json
 
 from pathlib import Path 
 
-
-
 class Document:
     def __init__(self, data):
         self.id = data["doc"]["id"]

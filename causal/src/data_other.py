@@ -34,7 +34,6 @@ EID_DICT = {
 ERROR = 0
 
 def valid_split(point, spans):
-    # retain context of at least 3 tokens
     for sp in spans:
         if point > sp[0] - 3 and point <= sp[1] + 3:
             return False
@@ -80,11 +79,6 @@ class Document:
         for rel in self.relations:
             for pair in self.relations[rel]:
                 pair2rel[tuple(pair)] = rel2id[rel]
-                # if not ignore_nonetype:
-                    # if rel in bidirectional_rel:
-                    #     pair2rel[(pair[1], pair[0])] = rel2id[rel]
-                #     elif rel in inverse_rel:
-                #         pair2rel[(pair[1], pair[0])] = rel2id[inverse_rel[rel]]
             
         self.labels = []
         for i, e1 in enumerate(self.events):
@@ -129,7 +123,6 @@ class myDataset(Dataset):
                 self.examples.append(doc)
     
     def tokenize(self):
-        # {input_ids, event_spans, event_group}
         self.tokenized_samples = []
         for example in tqdm(self.examples, desc="tokenizing"):
             event_spans = [] # [[(start, end)], [],...]

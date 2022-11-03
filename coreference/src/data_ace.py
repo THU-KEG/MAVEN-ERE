@@ -30,9 +30,6 @@ def split_spans(point, spans):
 def tokenize_sent(text):
     return nltk.sent_tokenize(text)
 
-# def type_tokens(type_str):
-#     return [f"<{type_str}>", f"<{type_str}/>"]
-
 class Document:
     def __init__(self, data):
         self.id = data["id"]
@@ -63,7 +60,6 @@ class Document:
         return new_events
     
     def populate_event_spans(self):
-        # lengths = [len(sent) for sent in self.words]
         event_mentions = [] # {"id": int, "trigger_word": str, "position":[],}
         merged_events = []
         for event in self.events:
@@ -186,10 +182,7 @@ class myDataset(Dataset):
                 attention_mask.append(mask)
             item["input_ids"] = torch.LongTensor(item["input_ids"])
             item["attention_mask"] = torch.LongTensor(attention_mask)
-            # retain_event_index = [i for i in range(len(item["event_spans"])) if item["event_spans"][i][1] < self.max_length]
-            # item["event_spans"] = [item["event_spans"][i] for i in retain_event_index]
-            # item["label_groups"] = [[i for i in gr if i in retain_event_index] for gr in item["label_groups"]]
-    
+
     def __getitem__(self, index):
         return self.tokenized_samples[index]
 
@@ -218,15 +211,6 @@ def get_dataloader(tokenizer, split, data_dir="../data/processed/ACE", max_lengt
 if __name__ == "__main__":
     from transformers import RobertaTokenizer
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    # tokens = get_special_tokens()
-    # print(tokens)
-    # tokenizer.add_special_tokens(tokens)
-    # n = tokenizer.add_tokens(tokens)
-    # print(n)
-    # dataset = myDataset(tokenizer, "../data/", "test")
-    # print(dataset[0])
-    # print(dataset[1])
-    # print(dataset[2])
     dataloader = get_dataloader(tokenizer, "test", data_dir="../../data/processed/ACE", shuffle=False, max_length=512, batch_size=1, sample_rate=None)
     for data in dataloader:
         print(data["input_ids"].size())

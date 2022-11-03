@@ -72,7 +72,7 @@ class Document:
                 for e1 in self.eid2mentions[pair[0]]:
                     for e2 in self.eid2mentions[pair[1]]:
                         pair2rel[(e1, e2)] = REL2ID[rel]
-                        if rel in ["simultaneous", "begins-on"]: # "overlap"
+                        if rel in ["simultaneous", "begins-on"]:
                             pair2rel[(e2, e1)] = REL2ID[rel]
         self.labels = []
         for e1 in self.events:
@@ -114,11 +114,10 @@ class myDataset(Dataset):
                 self.examples.append(doc)
     
     def tokenize(self):
-        # {input_ids, event_spans, event_group}
         self.tokenized_samples = []
         for example in tqdm(self.examples, desc="tokenizing"):
-            event_spans = [] # [[(start, end)], [],...]
-            input_ids = [] # [[], [], ...]
+            event_spans = []
+            input_ids = []
 
             labels = example.labels
             spans = example.sorted_event_spans
@@ -155,7 +154,6 @@ class myDataset(Dataset):
                     sub_event_spans += [(sp[0]+len(sub_input_ids), sp[1]+len(sub_input_ids)) for sp in tmp_event_spans]
                     sub_input_ids += tmp_input_ids
                 else:
-                    # print("exceed max length! truncate")
                     assert len(sub_input_ids) <= self.max_length
                     input_ids.append(sub_input_ids)
                     event_spans.append(sub_event_spans)
@@ -231,6 +229,4 @@ if __name__ == "__main__":
     for data in dataloader:
         print(data["input_ids"].size())
         print(data["attention_mask"].size())
-        print(data["labels"])
-        # break
-        
+        print(data["labels"])        

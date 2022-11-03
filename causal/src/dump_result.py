@@ -43,7 +43,6 @@ def dump_result(input_path, preds, save_dir):
         doc = Document(data)
         if doc.events:
             examples.append(doc)
-    # each item is the clusters of a document
     final_results = []
     for example, pred_per_doc in zip(examples, preds):
         assert example.id == pred_per_doc["doc_id"]

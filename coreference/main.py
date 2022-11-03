@@ -15,7 +15,6 @@ from torch.optim import Adam
 import os
 import sys
 from src.dump_result import dump_result
-
 from pathlib import Path 
 
 
@@ -152,7 +151,6 @@ if __name__ == "__main__":
 
     metrics = [b_cubed, ceafe, muc, blanc]
     metric_names = ["B-cubed", "CEAF", "MUC", "BLANC"]
-    # evaluaters = [Evaluator(metric) for metric in metrics]
 
     glb_step = 0
     if not args.eval_only:
@@ -175,21 +173,15 @@ if __name__ == "__main__":
                 for i in range(len(probs)):
                     prob = probs[i]
                     labels = data["label_groups"][i]
-                    # print("labels:", labels)
                     filled_labels = fill_expand(labels)
                     filled_labels = to_cuda(filled_labels)
-                    # print(filled_labels.size())
-                    # print(prob.size())
                     weight = torch.eye(prob.size(0))
                     weight[weight==0.0] = 0.1
                     weight = weight.to(prob.device)
                     prob_sum = torch.sum(torch.clamp(torch.mul(prob, filled_labels), eps, 1-eps), dim=1)
-                    # print(prob_sum)
                     loss = loss + torch.sum(torch.log(prob_sum)) * -1
 
                     pred_clusters, pred_event2cluster = get_predicted_clusters(prob)
-                    # print("pred:", pred_clusters)
-                    # print("gold:", labels)
                     gold_event2cluster = get_event2cluster(labels)
                     assert len(pred_event2cluster) == len(gold_event2cluster), print(pred_event2cluster, gold_event2cluster)
                     eval_result = EvalResult(labels, gold_event2cluster, pred_clusters, pred_event2cluster)
@@ -207,11 +199,6 @@ if __name__ == "__main__":
 
                 if glb_step % args.log_steps == 0:
                     print("*"*20 + "Train Prediction Examples" + "*"*20)
-                    # for i in range(-5, 0):
-                    #     print("true:")
-                    #     print(train_eval_results[i].gold)
-                    #     print("pred:")
-                    #     print(train_eval_results[i].clusters)
                     print("Train %d steps: loss=%f" % (glb_step, np.mean(train_losses)))
                     for metric, name in zip(metrics, metric_names):
                         res = evaluate_documents(train_eval_results, metric)

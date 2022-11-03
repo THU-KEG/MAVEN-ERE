@@ -119,9 +119,6 @@ if __name__ == "__main__":
     set_seed(args.seed)
     
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    # tokens = get_special_tokens()
-
-    # n = tokenizer.add_tokens(tokens)
 
     print("loading data...")
     if not args.eval_only:
@@ -132,7 +129,6 @@ if __name__ == "__main__":
     print("loading model...")
     model = Model(len(tokenizer), out_dim=label_num)
     model = to_cuda(model)
-    # inner_model = model.module if isinstance(nn.DataParallel) else model
 
     if not args.eval_only:
         bert_optimizer = AdamW([p for p in model.encoder.model.parameters() if p.requires_grad], lr=args.bert_lr)
@@ -140,9 +136,6 @@ if __name__ == "__main__":
         scheduler = get_linear_schedule_with_warmup(bert_optimizer, num_warmup_steps=200, num_training_steps=len(train_dataloader) * args.epochs)
     eps = 1e-8
 
-    # metrics = [b_cubed, ceafe, muc, blanc]
-    # metric_names = ["B-cubed", "CEAF", "MUC", "BLANC"]
-    # evaluaters = [Evaluator(metric) for metric in metrics]
     Loss = nn.CrossEntropyLoss(ignore_index=-100)
     glb_step = 0
     if not args.eval_only:
@@ -159,16 +152,10 @@ if __name__ == "__main__":
                 for k in data:
                     if isinstance(data[k], torch.Tensor):
                         data[k] = to_cuda(data[k])
-                # input_ids = data["input_ids"]
-                # attention_mask = data["attention_mask"]
-                # input_ids = input_ids.cuda()
-                # attention_mask = attention_mask.cuda()
                 scores = model(data)
                 labels = data["labels"]
-                # print("size from label:", [len(label[label>=0]) for label in labels])
                 scores = scores.view(-1, scores.size(-1))
                 labels = labels.view(-1)
-                # print("labels:", labels[:10])
                 loss = Loss(scores, labels)
                 pred = torch.argmax(scores, dim=-1)
                 pred_list.extend(pred[labels>=0].cpu().numpy().tolist())
@@ -194,8 +181,6 @@ if __name__ == "__main__":
                     res = classification_report(label_list, pred_list, output_dict=True, target_names=REPORT_CLASS_NAMES, labels=REPORT_CLASS_LABELS)
                     print("Train result:", res)
                     
-
-                    # print("Train %d steps %s: precision=%.4f, recall=%.4f, f1=%.4f" % (glb_step, name, *res))
                     train_losses = []
                     pred_list = []
                     label_list = []

@@ -61,10 +61,6 @@ class Evaluator:
     def get_prf(self):
         return self.get_precision(), self.get_recall(), self.get_f1()
 
-    # def get_counts(self):
-    #     return self.p_num, self.p_den, self.r_num, self.r_den
-
-
 def evaluate_documents(documents, metric, beta=1):
     evaluator = Evaluator(metric, beta=beta)
     for document in documents:
@@ -76,16 +72,12 @@ def b_cubed(clusters, mention_to_gold):
     num, dem = 0, 0
 
     for c in clusters:
-        # if len(c) == 1:
-        #     continue
-
         gold_counts = Counter()
         correct = 0
         for m in c:
             if m in mention_to_gold:
                 gold_counts[tuple(mention_to_gold[m])] += 1
         for c2, count in gold_counts.items():
-            # if len(c2) != 1:
             correct += count * count
 
         num += correct / float(len(c))
@@ -114,27 +106,13 @@ def phi4(c1, c2):
 
 
 def ceafe(clusters, gold_clusters):
-    # clusters = [c for c in clusters if len(c) != 1]
-    # scores = np.zeros((len(clusters), len(gold_clusters)))
-    # for j in range(len(gold_clusters)):
-    #     for i in range(len(clusters)):
-    #         scores[i, j] = len(set(clusters[i]) & set(gold_clusters[j]))
-    # indexs = linear_sum_assignment(scores, maximize=True)
-    # max_correct_mentions = sum(
-    #     [scores[indexs[0][i], indexs[1][i]] for i in range(indexs[0].shape[0])]
-    # )
-
     scores = np.zeros((len(gold_clusters), len(clusters)))
     for i in range(len(gold_clusters)):
         for j in range(len(clusters)):
             scores[i, j] = phi4(gold_clusters[i], clusters[j])
-    # matching = linear_assignment(-scores)
-    # similarity = sum(scores[matching[:, 0], matching[:, 1]])
     row_id, col_id = linear_sum_assignment(-scores)
     similarity = sum(scores[row_id, col_id])
     return similarity, len(clusters), similarity, len(gold_clusters)
-    # return max_correct_mentions, len(sum(clusters, [])), max_correct_mentions, len(sum(gold_clusters, []))
-
 
 def lea(clusters, mention_to_gold):
     num, dem = 0, 0
@@ -142,7 +120,6 @@ def lea(clusters, mention_to_gold):
     for c in clusters:
         if len(c) == 1:
             continue
-
         common_links = 0
         all_links = len(c) * (len(c) - 1) / 2.0
         for i, m in enumerate(c):
@@ -150,15 +127,12 @@ def lea(clusters, mention_to_gold):
                 for m2 in c[i + 1:]:
                     if m2 in mention_to_gold and mention_to_gold[m] == mention_to_gold[m2]:
                         common_links += 1
-
         num += len(c) * common_links / float(all_links)
         dem += len(c)
 
     return num, dem
 
 def blanc(mention_to_cluster, mention_to_gold):
-    # for m in mention_to_gold:
-    # return rc, rc+wc, rc, rc+wn
     rc = 0
     wc = 0
     rn = 0
@@ -187,9 +161,6 @@ if __name__ == "__main__":
             self.mention_to_gold = mention2gold
             self.clusters = clusters
             self.gold = gold
-
-    # gold = [[0], [1], [2], [3], [4,11,13], [5], [6,8], [7], [9], [10], [12]]
-    # pred = [[0], [1], [2], [3,5], [4, 11], [6,8,13], [7], [9], [10], [12]]
     gold = [[1,2,3,4,5], [6,7], [8,9,10, 11,12], [13]]
     pred = [[1,2,3,4,5], [6,7], [8,9,10,11,12], [13]]
     mention2cluster = get_event2cluster(pred)

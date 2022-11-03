@@ -15,7 +15,6 @@ REL2ID = {
 ID2REL = {v:k for k, v in REL2ID.items()}
 
 def valid_split(point, spans):
-    # retain context of at least 3 tokens
     for sp in spans:
         if point > sp[0] - 3 and point <= sp[1] + 3:
             return False
@@ -217,6 +216,4 @@ if __name__ == "__main__":
     for data in dataloader:
         print(data["input_ids"].size())
         print(data["attention_mask"].size())
-        print(data["labels"])
-        # break
-        
+        print(data["labels"])        

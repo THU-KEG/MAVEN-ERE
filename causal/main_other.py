@@ -112,9 +112,6 @@ if __name__ == "__main__":
         print("loading model...")
         model = Model(len(tokenizer), out_dim=len(REL2ID))
         model = to_cuda(model)
-        # inner_model = model.module if isinstance(nn.DataParallel) else model
-
-        # if not args.eval_only:
         bert_optimizer = AdamW([p for p in model.encoder.model.parameters() if p.requires_grad], lr=args.bert_lr)
         optimizer = Adam([p for p in model.scorer.parameters() if p.requires_grad], lr=args.lr)
         scheduler = get_linear_schedule_with_warmup(bert_optimizer, num_warmup_steps=200, num_training_steps=len(train_dataloader) * args.epochs)
@@ -123,7 +120,6 @@ if __name__ == "__main__":
 
         Loss = nn.CrossEntropyLoss(ignore_index=-100)
         glb_step = 0
-        # if not args.eval_only:
         print("*******************start training********************")
 
         train_losses = []
@@ -167,8 +163,6 @@ if __name__ == "__main__":
                     res = classification_report(label_list, pred_list, output_dict=True, target_names=[ID2REL[i] for i in range(len(ID2REL)) if i != IGNORE_ID], labels=[i for i in range(len(ID2REL)) if i != IGNORE_ID])
                     print("Train result:", res)
                     
-
-                    # print("Train %d steps %s: precision=%.4f, recall=%.4f, f1=%.4f" % (glb_step, name, *res))
                     train_losses = []
                     pred_list = []
                     label_list = []
@@ -208,7 +202,6 @@ if __name__ == "__main__":
             f.writelines(json.dumps(res, indent=4))
 
     
-    # print overall result
     for k in test_results:
         for m in test_results[k]:
             test_results[k][m] /= args.K 

@@ -1,7 +1,6 @@
 import torch.nn as nn
 from transformers import AutoConfig, AutoModel, BertConfig, RobertaModel
 import torch
-# from coreference.src.metrics import Evaluator, b_cubed, ceafe
 from .utils import to_cuda, to_var, flatten, fill_expand, pad_and_stack
 import torch.nn.functional as F
 
@@ -24,7 +23,6 @@ class EventEncoder(nn.Module):
         doc_splits = inputs["splits"]
         event_embed = []
         output = self.model(input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True).last_hidden_state
-        # print(output.size())
         for i in range(0, len(doc_splits)-1):
             embed = []
             doc_embed = output[doc_splits[i]:doc_splits[i+1]]
@@ -67,12 +65,9 @@ class PairScorer(nn.Module):
         self.score = Score(embed_dim * 3)
     
     def forward(self, event_embed):
-        # dummy = torch.zeros(self.embed_dim)
         all_probs = []
         for i in range(len(event_embed)):
             embed = event_embed[i]
-            # print(embed.size())
-            # filled_labels = to_cuda(self.fill_expand(labels))
             if embed.size(0) > 1: # at least one event
                 event_id, antecedent_id = zip(*[(index, k) for index in range(len(embed)) for k in range(index)])
                 event_id, antecedent_id = to_cuda(torch.tensor(event_id)), to_cuda(torch.tensor(antecedent_id))

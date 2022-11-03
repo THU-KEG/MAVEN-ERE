@@ -15,10 +15,7 @@ def flatten(lists):
     return [item for l in lists for item in l]
 
 def fill_expand(labels):
-    # print(labels)
-    # print(flatten(labels))
     event_num = max(flatten(labels)) + 1
-    # print(event_num)
     filled_labels = torch.zeros((event_num, event_num)) # account for dummy
     for gr in labels:
         if len(gr) > 1:
@@ -32,17 +29,13 @@ def fill_expand(labels):
             except:
                 print(gr)
                 raise ValueError
-    # print(filled_labels)
     return filled_labels
 
 def pad_and_stack(tensors, pad_size=None, value=0):
     """ Pad and stack an uneven tensor of token lookup ids.
     Assumes num_sents in first dimension (batch_first=True)"""
 
-    # Get their original sizes (measured in number of tokens)
     sizes = [s.shape[0] for s in tensors]
-
-    # Pad size will be the max of the sizes
     if not pad_size:
         pad_size = max(sizes)
 
@@ -59,7 +52,6 @@ def get_event2cluster(clusters):
     event2cluster = {}
     for cluster in clusters:
         for eid in cluster:
-            # if eid not in even2cluster:
             event2cluster[eid] = tuple(cluster)
     return event2cluster
 
@@ -68,20 +60,11 @@ def get_clusters(event2cluster):
     return clusters
 
 def get_predicted_clusters(prob):
-    """ 根据预测的先行词得到指代簇
-    """
     predicted_antecedents = torch.argmax(prob, dim=-1).cpu().numpy().tolist() # n_event x n_event -> n_event
-    # if isinstance()
     idx_to_clusters = {}
     predicted_clusters = []
-    # try:
     for i in range(len(predicted_antecedents)):
         idx_to_clusters[i] = set([i])
-    # except:
-    #     print(prob)
-    #     print(predicted_antecedents)
-    #     import sys
-    #     sys.exit()
 
     for i, predicted_index in enumerate(predicted_antecedents):
         if predicted_index >= i:
@@ -98,8 +81,4 @@ def get_predicted_clusters(prob):
 
 if __name__ == "__main__":
     clus = [[1,2,3], [4,5,6], [7], [8, 10], [9]]
-    # print(get_event2cluster(clus))
-    # prob = torch.rand((1,))
-    # print(prob)
-    # print(get_predicted_clusters(prob))
     print(fill_expand(clus))

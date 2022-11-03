@@ -27,7 +27,6 @@ def split_spans(point, spans):
     part2 = spans[i:]
     return part1, part2
 
-
 class Document:
     def __init__(self, data):
         self.id = data["doc"]["id"]
@@ -45,9 +44,6 @@ class Document:
 
         self.sorted_event_spans = [(event["sent_id"], event["offset"]) for event in events]
 
-
-
-
 class myDataset(Dataset):
     def __init__(self, tokenizer, data_dir, split, max_length=512, sample_rate=None):
         if split != "train" and sample_rate is not None:
@@ -58,7 +54,6 @@ class myDataset(Dataset):
         self.load_examples(data_dir, split)
         if self.sample_rate:
             self.examples = list(random.sample(self.examples, int(self.sample_rate * len(self.examples))))
-        # self.examples = self.examples
         self.tokenize()
         self.to_tensor()
     
@@ -157,20 +152,11 @@ class myDataset(Dataset):
     def __len__(self):
         return len(self.tokenized_samples)
 
-# def get_special_tokens(filepath="../data/types.txt"):
-#     types = open(filepath).readlines()
-#     type_tokens_list = []
-#     for t in types:
-#         type_tokens_list += type_tokens(t.strip())
-#     return type_tokens_list
-
 def collator(data):
     collate_data = {"input_ids": [], "attention_mask": [], "event_spans": [], "label_groups": [], "splits": [0], "doc_id": []}
     for d in data:
         for k in d:
             collate_data[k].append(d[k])
-            # if k == "label_groups":
-            #     print(collate_data[k])
     lengths = [ids.size(0) for ids in collate_data["input_ids"]]
     for l in lengths:
         collate_data["splits"].append(collate_data["splits"][-1]+l)
@@ -185,15 +171,7 @@ def get_dataloader(tokenizer, split, data_dir="../data/MAVEN_ERE", max_length=12
 if __name__ == "__main__":
     from transformers import RobertaTokenizer
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-    # tokens = get_special_tokens()
-    # print(tokens)
-    # tokenizer.add_special_tokens(tokens)
-    # n = tokenizer.add_tokens(tokens)
-    # print(n)
     dataset = myDataset(tokenizer, "../data/", "test", max_length=128)
-    # print(dataset[0])
-    # print(dataset[1])
-    # print(dataset[2])
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=collator)
     for data in dataloader:
         print(data["input_ids"].size())
@@ -207,4 +185,3 @@ if __name__ == "__main__":
                 print(tokenizer.decode(data["input_ids"][i][sp[0]:sp[1]]))
 
         break
-        
