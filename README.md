@@ -19,8 +19,8 @@ Source code and dataset for EMNLP 2022 paper "MAVEN-ERE: A Unified Large-scale D
 - MAVEN-ERE is the first unified large-scale dataset for events relation extraction. It contains 4480 documents, with 103,193 coreference chains, 1,216,217 temporal relations, 15,841 subevent relations, and 57,992 causal relations. 
   - Temporal relations include: `BEFORE`, `OVERLAP`, `CONTAINS`, `SIMULTANEOUS`, `BEGINS-ON`, and `ENDS-ON`
   - Causal relations include: `CAUSE` and `PRECONDITION`
-- The annotation rule of above relations large follows [RED guideline](https://github.com/timjogorman/RicherEventDescription/blob/master/guidelines.md).
-
+- The annotation rule of above relations mainly follows [RED guideline](https://github.com/timjogorman/RicherEventDescription/blob/master/guidelines.md).
+- For more details, please see [the paper]().
 ![illustration](https://user-images.githubusercontent.com/55496186/196908089-e240d099-cdfd-4286-9046-e7e9d764562e.png)
 
 

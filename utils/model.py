@@ -23,7 +23,6 @@ class EventEncoder(nn.Module):
         doc_splits = inputs["splits"]
         event_embed = []
         output = self.model(input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True).last_hidden_state
-        # print(output.size())
         for i in range(0, len(doc_splits)-1):
             embed = []
             doc_embed = output[doc_splits[i]:doc_splits[i+1]]
@@ -67,7 +66,6 @@ class PairScorer(nn.Module):
         self.score = Score(embed_dim * 2, out_dim=out_dim)
     
     def forward(self, event_embed):
-        # dummy = torch.zeros(self.embed_dim)
         all_scores = []
         for i in range(len(event_embed)):
             embed = event_embed[i]
@@ -82,7 +80,7 @@ class PairScorer(nn.Module):
             pairs = torch.cat((i_g, j_g), dim=1)
             scores = self.score(pairs)
             all_scores.append(scores)
-        all_scores, sizes = pad_and_stack(all_scores, value=-1000) # (doc_num, max_label_num, label_num)
+        all_scores, sizes = pad_and_stack(all_scores, value=-1000)
         return all_scores
 
 class Model(nn.Module):
@@ -94,4 +92,4 @@ class Model(nn.Module):
     def forward(self, inputs):
         output = self.encoder(inputs)
         output = self.scorer(output)
-        return output # [[tensor]]
+        return output
