@@ -137,30 +137,6 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
 }
 ```
 
-## Project Structure
-```
-.
-├── data
-│   ├── download_maven.sh
-│   ├── download.sh
-├── causal
-│   ├── output
-│   ├── src
-│       ├── data.py # dataloader utils
-│       ├── dump_result.py # predict result output utils
-│   ├── main.py # running script
-├── coreference
-│   ├── ...
-├── temporal
-│   ├── ...
-├── subevent
-│   ├── ...
-├── utils
-│   ├── model.py
-│   ├── utils.py
-└── README.md
-```
-
 ## Key Implementations
 
 ### Batching strategy
