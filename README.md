@@ -146,6 +146,52 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
 - [Subevent Relation Experiments](subevent/README.md)
 - [Joint Training Experiments](joint/README.md)
 
+## Get Test Results from CodaLab
+To get the test results, you can submit your predictions to our permanent [CodaLab competition](https://codalab.lisn.upsaclay.fr/competitions/8691#learn_the_details).
+
+You need to name your result file as `test_prediction.jsonl` and compress it into zip format file named `submission.zip` for submission. Each line in the submission file should be a `json` string encoding the prediction results for one document. The json format is as below:
+
+```JSON5
+{
+  "id": "f28bce270df5a122c09365002d247e76", // an unique string for each document, mandatory
+  "coreference": [ // a list for predicted coreference clusters, each item is a cluster of event mentions having coreference relations with each other
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"] // a list for a predicted cluster, each item is the id of an event mention
+  ],
+  "temporal_relations": { // a list for predicted temporal relations between event mentions (not events) and TIMEXs
+    "BEFORE": [ // a list for predicted temporal relations of BEFORE type
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"] // a temporal relation instance, its items shall be id of event mentions or TIMEXs
+    ],
+    "OVERLAP": [ // all the following types are similar
+      ["a75ba55cadad23555a0ffc9454088687", "TIME_id_1"]
+    ],
+    "CONTAINS": [
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"]
+    ],
+    "SIMULTANEOUS": [
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"]
+    ],
+    "ENDS-ON": [
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"]
+    ],
+    "BEGINS-ON": [
+      ["555a0ffc9454a75ba08868755cadad23", "TIME_id_2"]
+    ],
+  },
+  "causal_relations": { // a list for predicted causal relations between event mentions (not events)
+    "CAUSE": [  // a list for causal relations of CAUSE type
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"] // a causal relation instance, its items shall be id of event mentions
+    ],
+    "PRECONDITION": [ // the PRECONDITION type is similar
+      ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"]
+    ],
+  },
+  "subevent_relations": [ // a list for predicted subevent relations between event mention (not events)
+    ["a75ba55cadad23555a0ffc9454088687", "555a0ffc9454a75ba08868755cadad23"] // a subevent relation instance, its items shall be id of event mentions
+  ]
+}
+```
+
+For the detailed implementations of our evaluations, please refer to the [evaluation script](evaluate.py).
 
 ## Citation
 TBD
