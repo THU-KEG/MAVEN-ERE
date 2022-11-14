@@ -39,18 +39,18 @@ def split_spans(point, spans):
 
 class Document:
     def __init__(self, data, ignore_nonetype=False):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
+        self.id = data["id"]
+        self.words = data["tokens"]
         self.events = []
         self.eid2mentions = {}
         if "events" not in data:
-            self.events = data["candidates"]
+            self.events = data["event_mentions"]
             self.relations = []
         else:
             for e in data["events"]:
-                self.events += e["mentions"]
-                self.eid2mentions[e["id"]] = [m["id"] for m in e["mentions"]]
-            self.relations = data["causal_relation"]
+                self.events += e["mention"]
+                self.eid2mentions[e["id"]] = [m["id"] for m in e["mention"]]
+            self.relations = data["causal_relations"]
 
         self.sort_events()
         self.get_labels(ignore_nonetype)

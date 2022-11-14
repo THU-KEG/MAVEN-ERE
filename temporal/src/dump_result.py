@@ -3,48 +3,24 @@ import os
 from pathlib import Path 
 
 REL2ID = {
-    "before": 0,
-    "overlap": 1,
-    "contains": 2,
-    "simultaneous": 3,
-    "ends-on": 4,
-    "begins-on": 5,
+    "BEFORE": 0,
+    "OVERLAP": 1,
+    "CONTAINS": 2,
+    "SIMULTANEOUS": 3,
+    "ENDS-ON": 4,
+    "BEGINS-ON": 5,
     "NONE": 6,
 }
 
 ID2REL = {v:k for k, v in REL2ID.items()}
 
-def valid_split(point, spans):
-    # retain context of at least 3 tokens
-    for sp in spans:
-        if point > sp[0] - 3 and point <= sp[1] + 3:
-            return False
-    return True
-
-def split_spans(point, spans):
-    part1 = []
-    part2 = []
-    i = 0
-    for sp in spans:
-        if sp[1] < point:
-            part1.append(sp)
-            i += 1
-        else:
-            break
-    part2 = spans[i:]
-    return part1, part2
-
-
-def type_tokens(type_str):
-    return [f"<{type_str}>", f"<{type_str}/>"]
-
 class Document:
     def __init__(self, data, ignore_nonetype=False):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
+        self.id = data["id"]
+        self.words = data["tokens"]
         self.events = []
         self.eid2mentions = {}
-        self.events = data["candidates"] + data["TIMEX3"]
+        self.events = data["event_mentions"] + data["TIMEX"]
 
         self.sort_events()
         self.get_pairs(ignore_nonetype)
@@ -81,19 +57,16 @@ def dump_result(input_path, preds, save_dir, ignore_nonetype=True):
         pred_rels = pred_per_doc["preds"]
         item = {
             "id": example.id,
-            "pairs": []
+            "temporal_relations": {"BEFORE":[],"OVERLAP":[],"CONTAINS":[],"SIMULTANEOUS":[],"ENDS-ON":[],"BEGINS-ON":[]}
         }
         assert len(example.all_pairs) == len(pred_rels)
         for i, pair in enumerate(example.all_pairs):
-            item["pairs"].append({
-                "e1": pair[0],
-                "e2": pair[1],
-                "pred_relation": ID2REL[int(pred_rels[i])],
-            })        
+            if ID2REL[int(pred_rels[i])]!="NONE":
+                item["temporal_relations"][ID2REL[int(pred_rels[i])]].append([pair[0],pair[1]])
         final_results.append(item)
     save_dir = Path(save_dir)
     save_dir.mkdir(exist_ok=True, parents=True)
-    with open(os.path.join(save_dir, "temporal_prediction.json"), "w")as f:
+    with open(os.path.join(save_dir, "test_prediction.jsonl"), "w")as f:
         f.writelines("\n".join([json.dumps(item) for item in final_results]))
 
 

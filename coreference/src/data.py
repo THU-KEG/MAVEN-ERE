@@ -1,4 +1,3 @@
-# %%
 import json
 from torch.utils.data import DataLoader, Dataset
 import torch
@@ -29,19 +28,17 @@ def split_spans(point, spans):
 
 class Document:
     def __init__(self, data):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
+        self.id = data["id"]
+        self.words = data["tokens"]
         if "events" in data:
-            self.merged_events = [e["mentions"] for e in data["events"]]
+            self.merged_events = [e["mention"] for e in data["events"]]
         else:
-            self.merged_events = [data["candidates"]]
+            self.merged_events = [data["event_mentions"]]
         self.populate_event_spans()
-    
     def populate_event_spans(self):
         events = sorted(flatten(self.merged_events), key=lambda x: (x["sent_id"], x["offset"][0]))
         event2id = {e["id"]:idx for idx, e in enumerate(events)} # sorted events to index
         self.label_groups = [[event2id[e["id"]] for e in events] for events in self.merged_events] # List[List[int]] each sublist is a group of event index that co-references each other
-
         self.sorted_event_spans = [(event["sent_id"], event["offset"]) for event in events]
 
 class myDataset(Dataset):
@@ -56,7 +53,6 @@ class myDataset(Dataset):
             self.examples = list(random.sample(self.examples, int(self.sample_rate * len(self.examples))))
         self.tokenize()
         self.to_tensor()
-    
     def load_examples(self, data_dir, split):
         self.examples = []
         with open(os.path.join(data_dir, f"{split}.jsonl"))as f:
@@ -66,14 +62,12 @@ class myDataset(Dataset):
             doc = Document(data)
             if doc.sorted_event_spans:
                 self.examples.append(doc)
-    
     def tokenize(self):
         # {input_ids, event_spans, event_group}
         self.tokenized_samples = []
         for example in tqdm(self.examples, desc="tokenizing"):
             event_spans = [] # [[(start, end)], [],...]
             input_ids = [] # [[], [], ...]
-
             label_groups = example.label_groups
             spans = example.sorted_event_spans
             words = example.words
@@ -95,45 +89,34 @@ class myDataset(Dataset):
                     end = len(tmp_input_ids) + len(event_ids)
                     tmp_event_spans.append((start, end))
                     tmp_input_ids += event_ids
-
                     i = sp[1][1]
                     event_id += 1
                 if word[i:]:
                     tmp_input_ids += self.tokenizer(word[i:], is_split_into_words=True, add_special_tokens=False)["input_ids"]
-
-                
                 if len(sub_input_ids) + len(tmp_input_ids) <= self.max_length:
                     sub_event_spans += [(sp[0]+len(sub_input_ids), sp[1]+len(sub_input_ids)) for sp in tmp_event_spans]
                     sub_input_ids += tmp_input_ids
                 else:
-                    # print("exceed max length! truncate")
                     assert len(sub_input_ids) <= self.max_length
                     input_ids.append(sub_input_ids)
                     event_spans.append(sub_event_spans)
-
                     while len(tmp_input_ids) >= self.max_length:
                         split_point = self.max_length - 1
                         while not valid_split(split_point, tmp_event_spans):
                             split_point -= 1
                         tmp_event_spans_part1, tmp_event_spans = split_spans(split_point, tmp_event_spans)
                         tmp_input_ids_part1, tmp_input_ids = tmp_input_ids[:split_point], tmp_input_ids[split_point:]
-
                         input_ids.append([self.tokenizer.cls_token_id] + tmp_input_ids_part1)
                         event_spans.append([(sp[0]+1, sp[1]+1) for sp in tmp_event_spans_part1])
-
                         tmp_event_spans = [(sp[0]-len(tmp_input_ids_part1), sp[1]-len(tmp_input_ids_part1)) for sp in tmp_event_spans]
-
                     sub_event_spans = [(sp[0]+1, sp[1]+1) for sp in tmp_event_spans]
                     sub_input_ids = [self.tokenizer.cls_token_id] + tmp_input_ids
             if sub_input_ids:
                 input_ids.append(sub_input_ids)
                 event_spans.append(sub_event_spans)
-            
             assert event_id == len(spans)
-                
             tokenized = {"input_ids": input_ids, "attention_mask": None, "event_spans": event_spans, "label_groups": label_groups, "doc_id": example.id}
             self.tokenized_samples.append(tokenized)
-    
     def to_tensor(self):
         for item in self.tokenized_samples:
             attention_mask = []
@@ -145,10 +128,8 @@ class myDataset(Dataset):
                 attention_mask.append(mask)
             item["input_ids"] = torch.LongTensor(item["input_ids"])
             item["attention_mask"] = torch.LongTensor(attention_mask)
-    
     def __getitem__(self, index):
         return self.tokenized_samples[index]
-
     def __len__(self):
         return len(self.tokenized_samples)
 
@@ -183,5 +164,4 @@ if __name__ == "__main__":
         for i, spans in enumerate(spans_list):
             for sp in spans:
                 print(tokenizer.decode(data["input_ids"][i][sp[0]:sp[1]]))
-
         break

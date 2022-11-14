@@ -1,4 +1,3 @@
-# %%
 import json
 from torch.utils.data import DataLoader, Dataset
 import torch
@@ -39,17 +38,17 @@ def type_tokens(type_str):
 
 class Document:
     def __init__(self, data):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
+        self.id = data["id"]
+        self.words = data["tokens"]
         self.events = []
         self.eid2mentions = {}
         if "events" in data:
             for e in data["events"]:
-                self.events += e["mentions"]
-                self.eid2mentions[e["id"]] = [m["id"] for m in e["mentions"]]
-            self.relations = data["subevent_relation"]
+                self.events += e["mention"]
+                self.eid2mentions[e["id"]] = [m["id"] for m in e["mention"]]
+            self.relations = data["subevent_relations"]
         else:
-            self.events = data["candidates"]
+            self.events = data["event_mentions"]
             self.relations = []
         self.sort_events()
         self.get_labels()
@@ -72,8 +71,6 @@ class Document:
                     continue
                 self.labels.append(pair2rel.get((e1["id"], e2["id"]), REL2ID["NONE"]))
         assert len(self.labels) == len(self.events) ** 2 - len(self.events)
-
-
 
 class myDataset(Dataset):
     def __init__(self, tokenizer, data_dir, split, max_length=512, sample_rate=None):
@@ -101,7 +98,6 @@ class myDataset(Dataset):
         for example in tqdm(self.examples, desc="tokenizing"):
             event_spans = [] # [[(start, end)], [],...]
             input_ids = [] # [[], [], ...]
-
             labels = example.labels
             spans = example.sorted_event_spans
             words = example.words
@@ -123,7 +119,6 @@ class myDataset(Dataset):
                     end = len(tmp_input_ids) + len(event_ids)
                     tmp_event_spans.append((start, end))
                     tmp_input_ids += event_ids
-
                     i = sp[1][1]
                     event_id += 1
                 if word[i:]:
@@ -133,28 +128,21 @@ class myDataset(Dataset):
                 tmp_input_ids.append(self.tokenizer.sep_token_id)
 
                 if len(sub_input_ids) + len(tmp_input_ids) <= self.max_length:
-                    # print(len(sub_input_ids) + len(tmp_input_ids))
                     sub_event_spans += [(sp[0]+len(sub_input_ids), sp[1]+len(sub_input_ids)) for sp in tmp_event_spans]
                     sub_input_ids += tmp_input_ids
                 else:
-                    # print("exceed max length! truncate")
                     assert len(sub_input_ids) <= self.max_length
                     input_ids.append(sub_input_ids)
                     event_spans.append(sub_event_spans)
-
-                    # assert len(tmp_input_ids) < self.max_length, print("A sentence too long!\n %s" % " ".join(words[sent_id])) # 3580:
                     while len(tmp_input_ids) >= self.max_length:
                         split_point = self.max_length - 1
                         while not valid_split(split_point, tmp_event_spans):
                             split_point -= 1
                         tmp_event_spans_part1, tmp_event_spans = split_spans(split_point, tmp_event_spans)
                         tmp_input_ids_part1, tmp_input_ids = tmp_input_ids[:split_point], tmp_input_ids[split_point:]
-
                         input_ids.append([self.tokenizer.cls_token_id] + tmp_input_ids_part1)
                         event_spans.append([(sp[0]+1, sp[1]+1) for sp in tmp_event_spans_part1])
-
                         tmp_event_spans = [(sp[0]-len(tmp_input_ids_part1), sp[1]-len(tmp_input_ids_part1)) for sp in tmp_event_spans]
-                        # sub_input_ids = [self.tokenizer.cls_token_id] + tmp_input_ids_part2
 
                     sub_event_spans = [(sp[0]+1, sp[1]+1) for sp in tmp_event_spans]
                     sub_input_ids = [self.tokenizer.cls_token_id] + tmp_input_ids
@@ -193,11 +181,9 @@ def collator(data):
     for d in data:
         for k in d:
             collate_data[k].append(d[k])
-
     lengths = [ids.size(0) for ids in collate_data["input_ids"]]
     for l in lengths:
         collate_data["splits"].append(collate_data["splits"][-1]+l)
-
     collate_data["input_ids"] = torch.cat(collate_data["input_ids"])
     collate_data["attention_mask"] = torch.cat(collate_data["attention_mask"])
     max_label_length = max([len(label) for label in collate_data["labels"]])

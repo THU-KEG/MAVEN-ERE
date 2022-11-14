@@ -9,14 +9,11 @@ REL2ID = {
 
 ID2REL = {v:k for k, v in REL2ID.items()}
 
-
-
 class Document:
     def __init__(self, data):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
-        self.events = data["candidates"]
-
+        self.id = data["id"]
+        self.words = data["tokens"]
+        self.events = data["event_mentions"]
         self.sort_events()
         self.get_pairs()
     
@@ -48,19 +45,16 @@ def dump_result(input_path, preds, save_dir):
         pred_rels = pred_per_doc["preds"]
         item = {
             "id": example.id,
-            "pairs": []
+            "subevent_relations": []
         }
         assert len(example.all_pairs) == len(pred_rels)
         for i, pair in enumerate(example.all_pairs):
-            item["pairs"].append({
-                "e1": pair[0],
-                "e2": pair[1],
-                "pred_relation": ID2REL[int(pred_rels[i])],
-            })        
+            if ID2REL[int(pred_rels[i])]=="SUBEVENT":
+                item["subevent_relations"].append([pair[0],pair[1]])
         final_results.append(item)
     save_dir = Path(save_dir)
     save_dir.mkdir(exist_ok=True, parents=True)
-    with open(os.path.join(save_dir, "subevent_prediction.json"), "w")as f:
+    with open(os.path.join(save_dir, "test_prediction.jsonl"), "w")as f:
         f.writelines("\n".join([json.dumps(item) for item in final_results]))
 
 if __name__ == "__main__":

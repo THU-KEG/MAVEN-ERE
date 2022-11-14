@@ -7,21 +7,20 @@ import torch
 import random
 import numpy as np
 from tqdm import tqdm
-from data import get_dataloader
+from src.data import get_dataloader
 from transformers import AdamW, RobertaTokenizer, get_linear_schedule_with_warmup
 import argparse
 from torch.optim import Adam
 import torch.nn as nn
 from sklearn.metrics import classification_report
-from data import REL2ID, ID2REL
+from src.data import REL2ID, ID2REL
 import warnings
 import os
 import sys
 from pathlib import Path 
-from dump_result import dump_result
+from src.dump_result import dump_result
 
 warnings.filterwarnings("ignore")
-
 
 def set_seed(seed=0):
     np.random.seed(seed)
@@ -44,7 +43,6 @@ def evaluate(model, dataloader, desc=""):
             for k in data:
                 if isinstance(data[k], torch.Tensor):
                     data[k] = to_cuda(data[k])
-
             scores = model(data)
             labels = data["labels"]
             scores = scores.view(-1, scores.size(-1))
@@ -52,7 +50,6 @@ def evaluate(model, dataloader, desc=""):
             pred = torch.argmax(scores, dim=-1)
             pred_list.extend(pred[labels>=0].cpu().numpy().tolist())
             label_list.extend(labels[labels>=0].cpu().numpy().tolist())
-
     result_collection = classification_report(label_list, pred_list, output_dict=True, target_names=REPORT_CLASS_NAMES, labels=REPORT_CLASS_LABELS)
     print(f"{desc} result:", result_collection)
     return result_collection
@@ -65,13 +62,11 @@ def predict(model, dataloader):
             for k in data:
                 if isinstance(data[k], torch.Tensor):
                     data[k] = to_cuda(data[k])
-
             scores = model(data)
             labels = data["labels"]
             scores = scores.view(-1, scores.size(-1))
             labels = labels.view(-1)
             pred = torch.argmax(scores, dim=-1)
-            # unpad 
             max_label_length = data["max_label_length"]
             n_doc = len(labels) // max_label_length
             assert len(labels) % max_label_length == 0
@@ -119,7 +114,7 @@ if __name__ == "__main__":
     print("loading data...")
     if not args.eval_only:
         train_dataloader = get_dataloader(tokenizer, "train", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=True, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype, sample_rate=args.sample_rate)
-        dev_dataloader = get_dataloader(tokenizer, "dev", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype)
+        dev_dataloader = get_dataloader(tokenizer, "valid", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype)
     test_dataloader = get_dataloader(tokenizer, "test", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype)
 
     print("loading model...")
@@ -137,7 +132,6 @@ if __name__ == "__main__":
     glb_step = 0
     if not args.eval_only:
         print("*******************start training********************")
-
         train_losses = []
         pred_list = []
         label_list = []
@@ -145,7 +139,6 @@ if __name__ == "__main__":
         for epoch in range(args.epochs):
             for data in tqdm(train_dataloader, desc=f"Training epoch {epoch}"):
                 model.train()
-
                 for k in data:
                     if isinstance(data[k], torch.Tensor):
                         data[k] = to_cuda(data[k])
@@ -181,7 +174,6 @@ if __name__ == "__main__":
                     train_losses = []
                     pred_list = []
                     label_list = []
-
 
                 if glb_step % args.eval_steps == 0:
                     res = evaluate(model, dev_dataloader, desc="Validation")

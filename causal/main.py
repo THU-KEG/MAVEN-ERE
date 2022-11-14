@@ -66,13 +66,11 @@ def predict(model, dataloader):
             for k in data:
                 if isinstance(data[k], torch.Tensor):
                     data[k] = to_cuda(data[k])
-
             scores = model(data)
             labels = data["labels"]
             scores = scores.view(-1, scores.size(-1))
             labels = labels.view(-1)
             pred = torch.argmax(scores, dim=-1)
-            # unpad 
             max_label_length = data["max_label_length"]
             if max_label_length:
                 n_doc = len(labels) // max_label_length
@@ -115,7 +113,6 @@ if __name__ == "__main__":
         
     sys.stdout = open(os.path.join(output_dir, "log.txt"), 'w')
 
-
     set_seed(args.seed)
     
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
@@ -123,7 +120,7 @@ if __name__ == "__main__":
     print("loading data...")
     if not args.eval_only:
         train_dataloader = get_dataloader(tokenizer, "train", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=True, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype, sample_rate=args.sample_rate)
-        dev_dataloader = get_dataloader(tokenizer, "dev", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype)
+        dev_dataloader = get_dataloader(tokenizer, "valid", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype)
     test_dataloader = get_dataloader(tokenizer, "test", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size, ignore_nonetype=args.ignore_nonetype)
 
     print("loading model...")
@@ -167,7 +164,7 @@ if __name__ == "__main__":
                 bert_optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad()
-                bert_optimizer.step()
+                bert_optimizer.zero_grad()
 
                 glb_step += 1
 
@@ -184,7 +181,6 @@ if __name__ == "__main__":
                     train_losses = []
                     pred_list = []
                     label_list = []
-
 
                 if glb_step % args.eval_steps == 0:
                     res = evaluate(model, dev_dataloader, desc="Validation")

@@ -5,11 +5,10 @@ from pathlib import Path
 
 class Document:
     def __init__(self, data):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
-        self.events = data["candidates"]
+        self.id = data["id"]
+        self.words = data["tokens"]
+        self.events = data["event_mentions"]
         self.events = sorted(self.events, key=lambda x: (x["sent_id"], x["offset"][0]))
-
 
 def dump_result(input_path, preds, save_dir):
     # load examples 
@@ -28,17 +27,17 @@ def dump_result(input_path, preds, save_dir):
         clusters = pred_per_doc["clusters"]
         item = {
             "id": example.id,
-            "pred_clusters": [],
+            "coreference": [],
         }
         events = example.events
         for cluster in clusters:
-            item["pred_clusters"].append([
+            item["coreference"].append([
                 events[c]["id"] for c in cluster
             ])
         final_results.append(item)
     save_dir = Path(save_dir)
     save_dir.mkdir(exist_ok=True, parents=True)
-    with open(os.path.join(save_dir, "coreference_prediction.json"), "w")as f:
+    with open(os.path.join(save_dir, "test_prediction.jsonl"), "w")as f:
         f.writelines("\n".join([json.dumps(item) for item in final_results]))
 
 

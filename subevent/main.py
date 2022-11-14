@@ -65,13 +65,11 @@ def predict(model, dataloader):
             for k in data:
                 if isinstance(data[k], torch.Tensor):
                     data[k] = to_cuda(data[k])
-
             scores = model(data)
             labels = data["labels"]
             scores = scores.view(-1, scores.size(-1))
             labels = labels.view(-1)
             pred = torch.argmax(scores, dim=-1)
-            # unpad 
             max_label_length = data["max_label_length"]
             n_doc = len(labels) // max_label_length
             assert len(labels) % max_label_length == 0
@@ -105,12 +103,9 @@ if __name__ == "__main__":
     label_num = len(ID2REL)
     REPORT_CLASS_NAMES = [ID2REL[i] for i in range(0,len(ID2REL) - 1)]
     REPORT_CLASS_LABELS = list(range(len(ID2REL) - 1))
-
     output_dir = Path(f"./output/{args.seed}/maven_{args.sample_rate}")
     output_dir.mkdir(exist_ok=True, parents=True)
-        
     sys.stdout = open(os.path.join(output_dir, "log.txt"), 'w')
-
 
     set_seed(args.seed)
     
@@ -118,7 +113,7 @@ if __name__ == "__main__":
     print("loading data...")
     if not args.eval_only:
         train_dataloader = get_dataloader(tokenizer, "train", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=True, batch_size=args.batch_size, sample_rate=args.sample_rate)
-        dev_dataloader = get_dataloader(tokenizer, "dev", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size)
+        dev_dataloader = get_dataloader(tokenizer, "valid", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size)
     test_dataloader = get_dataloader(tokenizer, "test", data_dir="../data/MAVEN_ERE", max_length=256, shuffle=False, batch_size=args.batch_size)
 
     print("loading model...")
@@ -165,7 +160,6 @@ if __name__ == "__main__":
                 scheduler.step()
                 optimizer.zero_grad()
                 bert_optimizer.zero_grad()
-
                 glb_step += 1
 
                 if glb_step % args.log_steps == 0:
@@ -177,14 +171,12 @@ if __name__ == "__main__":
                     print("Train %d steps: loss=%f" % (glb_step, np.mean(train_losses)))
                     res = classification_report(label_list, pred_list, output_dict=True, target_names=REPORT_CLASS_NAMES, labels=REPORT_CLASS_LABELS)
                     print("Train result:", res)
-                    
                     train_losses = []
                     pred_list = []
                     label_list = []
 
                 if glb_step % args.eval_steps == 0:
                     res = evaluate(model, dev_dataloader, desc="Validation")
-
                     if "micro avg" not in res:
                         current_score = res["accuracy"]
                     else:

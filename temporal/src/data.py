@@ -1,4 +1,3 @@
-# %%
 import json
 from torch.utils.data import DataLoader, Dataset
 import torch
@@ -8,12 +7,12 @@ import torch.nn.functional as F
 import random
 
 REL2ID = {
-    "before": 0,
-    "overlap": 1,
-    "contains": 2,
-    "simultaneous": 3,
-    "ends-on": 4,
-    "begins-on": 5,
+    "BEFORE": 0,
+    "OVERLAP": 1,
+    "CONTAINS": 2,
+    "SIMULTANEOUS": 3,
+    "ENDS-ON": 4,
+    "BEGINS-ON": 5,
     "NONE": 6,
 }
 
@@ -42,19 +41,19 @@ def split_spans(point, spans):
 
 class Document:
     def __init__(self, data, ignore_nonetype=False):
-        self.id = data["doc"]["id"]
-        self.words = data["doc"]["tokens"]
+        self.id = data["id"]
+        self.words = data["tokens"]
         self.events = []
         self.eid2mentions = {}
         if "events" in data:
             for e in data["events"]:
-                self.events += e["mentions"]
-                self.eid2mentions[e["id"]] = [m["id"] for m in e["mentions"]]
-            self.relations = data["temporal_event_relation"]
+                self.events += e["mention"]
+                self.eid2mentions[e["id"]] = [m["id"] for m in e["mention"]]
+            self.relations = data["temporal_relations"]
         else:
-            self.events = data["candidates"]
+            self.events = data["event_mentions"]
             self.relations = {}
-        for t in data["TIMEX3"]:
+        for t in data["TIMEX"]:
             self.events.append(t)
             self.eid2mentions[t["id"]] = [t["id"]]
 
@@ -72,7 +71,7 @@ class Document:
                 for e1 in self.eid2mentions[pair[0]]:
                     for e2 in self.eid2mentions[pair[1]]:
                         pair2rel[(e1, e2)] = REL2ID[rel]
-                        if rel in ["simultaneous", "begins-on"]:
+                        if rel in ["SIMULTANEOUS", "BEGINS-ON"]:
                             pair2rel[(e2, e1)] = REL2ID[rel]
         self.labels = []
         for e1 in self.events:

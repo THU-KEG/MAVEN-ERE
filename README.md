@@ -67,7 +67,7 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
       "offset": [7, 8] // the offset of the trigger words in the tokens list
     },
   ],
-  "temporal_event_relation": { // a list for annotated temporal relations between events (and TIMEXs)
+  "temporal_relations": { // a list for annotated temporal relations between events (and TIMEXs)
     "BEFORE": [ // a list for temporal relations of BEFORE type
       ["EVENT_id_1", "TIME_id_2"] // a temporal relation instance, means EVENT_id_1 BEFORE TIME_id_2
     ],
@@ -87,7 +87,7 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
       ["EVENT_id_1", "EVENT_id_2"]
     ],
   },
-  "causal_relation": { // a list for annotated causal relations between events
+  "causal_relations": { // a list for annotated causal relations between events
     "CAUSE": [  // a list for causal relations of CAUSE type
       ["EVENT_id_1", "EVENT_id_2"] // a causal relation instance, means EVENT_id_1 CAUSE EVENT_id_2
     ],
@@ -95,7 +95,7 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
       ["EVENT_id_1", "EVENT_id_2"]
     ],
   },
-  "subevent_relation": [ // a list for annotated subevent relations between events
+  "subevent_relations": [ // a list for annotated subevent relations between events
     ["EVENT_id_1", "EVENT_id_2"] // a subevent relation instance, means EVENT_id_2 is a subevent of EVENT_id_1
   ]
 }
@@ -122,7 +122,9 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
       "id": "a75ba55cadad23555a0ffc9454088687", // an unique string for the event mention
       "trigger_word": "assumed", // a string of the trigger word or phrase
       "sent_id": 3, // the index of the corresponding sentence, starts with 0
-      "offset": [1, 2] // the offset of the trigger words in the tokens list
+      "offset": [1, 2], // the offset of the trigger words in the tokens list
+      "type": "Choosing", // the event type
+      "type_id": 25, // the numerical id for the event type, consistent with MAVEN
     }
   ],
   "TIMEX": [ // a list for annotated temporal expressions (TIMEX), each item is a dict for a TIMEX
@@ -137,26 +139,12 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
 }
 ```
 
-## Key Implementations
-
-### Batching strategy
-- refer to `data.py` in each task folder
-- We consider each document as a single sample, so `batch size=4` means in one batch there are 4 documents sent into the model.
-- For each document, the representation of each possible pair of events are extracted and combined for prediction. E.g. if there are `n` events in one document, altogether `n*(n-1)` pairs of events are extracted.
-- details can be seen in `src/data.py` in each task folder
-
-
-### Model structure
-- refer to [utils/model.py](utils/model.py)
-- We implement a most basic RoBERTa-base model to extract event representation (the average last hidden states of each token)
-- For each pair of events, event representations are concatenated as pair representation and a stack of linear layers is used for classification.
-
 ## How to run experiments
-- [Run coreference](coreference/README.md)
-- [Run temporal](temporal/README.md)
-- [Run causal](causal/README.md)
-- [Run subevent](subevent/README.md)
-- [Run joint](joint/README.md)
+- [Coreference Relation Experiments](coreference/README.md)
+- [Temporal Relation Experiments](temporal/README.md)
+- [Causal Relation Experiments](causal/README.md)
+- [Subevent Relation Experiments](subevent/README.md)
+- [Joint Training Experiments](joint/README.md)
 
 
 ## Citation

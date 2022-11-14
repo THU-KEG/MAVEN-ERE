@@ -25,7 +25,6 @@ class EvalResult:
         self.clusters = clusters
         self.mention_to_cluster = mention_to_cluster
 
-
 def set_seed(seed=0):
     np.random.seed(seed)
     random.seed(seed)
@@ -80,11 +79,9 @@ def predict(model, dataloader):
             for k in data:
                 if isinstance(data[k], torch.Tensor):
                     data[k] = to_cuda(data[k])
-
             probs = model(data)
             for i in range(len(probs)):
                 prob = probs[i]
-
                 pred_clusters, pred_event2cluster = get_predicted_clusters(prob)
                 all_preds.append({"doc_id": data["doc_id"][i], "clusters": pred_clusters})
     return all_preds
@@ -111,10 +108,8 @@ if __name__ == "__main__":
 
     output_dir = Path(f"./output/{args.seed}/{args.dataset}_{args.sample_rate}")
     output_dir.mkdir(exist_ok=True, parents=True)
-        
     sys.stdout = open(os.path.join(output_dir, "log.txt"), 'w')
     print(vars(args))
-
     if args.dataset == "maven":
         get_dataloader = get_maven_dataloader
     elif args.dataset == "ace":
@@ -123,15 +118,13 @@ if __name__ == "__main__":
         get_dataloader = get_kbp_dataloader
     else:
         raise NotImplementedError
-
     set_seed(args.seed)
-    
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
 
     print("loading data...")
     if not args.eval_only:
         train_dataloader = get_dataloader(tokenizer, "train", max_length=256, shuffle=True, batch_size=args.batch_size, sample_rate=args.sample_rate)
-        dev_dataloader = get_dataloader(tokenizer, "dev", max_length=256, shuffle=False, batch_size=args.batch_size)
+        dev_dataloader = get_dataloader(tokenizer, "valid", max_length=256, shuffle=False, batch_size=args.batch_size)
     test_dataloader = get_dataloader(tokenizer, "test", max_length=256, shuffle=False, batch_size=args.batch_size)
 
     print("loading model...")
@@ -145,7 +138,6 @@ if __name__ == "__main__":
     if not args.eval_only:
         bert_optimizer = AdamW([p for p in model.encoder.model.parameters() if p.requires_grad], lr=args.bert_lr)
         optimizer = Adam([p for p in model.scorer.parameters() if p.requires_grad], lr=args.lr)
-
         scheduler = get_linear_schedule_with_warmup(bert_optimizer, num_warmup_steps=200, num_training_steps=len(train_dataloader) * args.epochs)
     eps = 1e-8
 
@@ -156,18 +148,15 @@ if __name__ == "__main__":
     if not args.eval_only:
         print("*******************start training********************")
         best_result = {k:0.0 for k in metric_names}
-
         train_eval_results = []
         train_losses = []
         best_score = 0.0
         for epoch in range(args.epochs):
             for data in tqdm(train_dataloader, desc=f"Training epoch {epoch}"):
                 model.train()
-
                 for k in data:
                     if isinstance(data[k], torch.Tensor):
                         data[k] = to_cuda(data[k])
-
                 probs = model(data)
                 loss = to_cuda(to_var(torch.tensor(0.0)))
                 for i in range(len(probs)):
@@ -180,7 +169,6 @@ if __name__ == "__main__":
                     weight = weight.to(prob.device)
                     prob_sum = torch.sum(torch.clamp(torch.mul(prob, filled_labels), eps, 1-eps), dim=1)
                     loss = loss + torch.sum(torch.log(prob_sum)) * -1
-
                     pred_clusters, pred_event2cluster = get_predicted_clusters(prob)
                     gold_event2cluster = get_event2cluster(labels)
                     assert len(pred_event2cluster) == len(gold_event2cluster), print(pred_event2cluster, gold_event2cluster)
@@ -194,7 +182,6 @@ if __name__ == "__main__":
                 scheduler.step()
                 optimizer.zero_grad()
                 bert_optimizer.zero_grad()
-
                 glb_step += 1
 
                 if glb_step % args.log_steps == 0:
@@ -205,7 +192,6 @@ if __name__ == "__main__":
                         print("Train %d steps %s: precision=%.4f, recall=%.4f, f1=%.4f" % (glb_step, name, *res))
                     train_losses = []
                     train_eval_results = []
-
 
                 if glb_step % args.eval_steps == 0:
                     res = evaluate(model, dev_dataloader, metrics, metric_names, desc="Validation")
