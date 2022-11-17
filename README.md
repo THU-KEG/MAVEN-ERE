@@ -1,12 +1,12 @@
 # MAVEN-ERE
-Source code and dataset for EMNLP 2022 paper "MAVEN-ERE: A Unified Large-scale Dataset for Event Coreference, Temporal, Causal, and Subevent Relation Extraction".
+Source code and dataset for EMNLP 2022 paper ["MAVEN-ERE: A Unified Large-scale Dataset for Event Coreference, Temporal, Causal, and Subevent Relation Extraction"](https://arxiv.org/abs/2211.07342).
 
 ## Overview
 - MAVEN-ERE is the first unified large-scale dataset for events relation extraction. It contains 4480 documents, with 103,193 coreference chains, 1,216,217 temporal relations, 15,841 subevent relations, and 57,992 causal relations. 
   - Temporal relations include: `BEFORE`, `OVERLAP`, `CONTAINS`, `SIMULTANEOUS`, `BEGINS-ON`, and `ENDS-ON`
   - Causal relations include: `CAUSE` and `PRECONDITION`
 - The annotation rule of above relations mainly follows [RED guideline](https://github.com/timjogorman/RicherEventDescription/blob/master/guidelines.md).
-- For more details, please see [the paper]().
+- For more details, please see [the paper](https://arxiv.org/abs/2211.07342).
 ![illustration](https://user-images.githubusercontent.com/55496186/196908089-e240d099-cdfd-4286-9046-e7e9d764562e.png)
 
 ## Requirements
@@ -194,8 +194,14 @@ You need to name your result file as `test_prediction.jsonl` and compress it int
 For the detailed implementations of our evaluations, please refer to the [evaluation script](evaluate.py).
 
 ## Citation
-TBD
-
+```bibtex
+@inproceedings{wang-chen-etal2022MAVENERE,
+  title = {MAVEN-ERE: A Unified Large-scale Dataset for Event Coreference, Temporal, Causal, and Subevent Relation Extraction},
+  author = {Xiaozhi Wang and Yulin Chen and Ning Ding and Hao Peng and Zimu Wang and Yankai Lin and Xu Han and Lei Hou and Juanzi Li and Zhiyuan Liu and Peng Li and Jie Zhou},
+  booktitle = {Proceedings of EMNLP},
+  year = {2022},
+}
+```
 ## Contact
 - wangxz20@mails.tsinghua.edu.cn
 - yl-chen21@mails.tsinghua.edu.cn
