@@ -101,7 +101,7 @@ Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a js
 }
 ```
 
-- For the `test.jsonl`, the format is similar but we hide the ground truth annotations to organize a fair evaluation challenge. To get evaluation results on the test set, you need to submit the prediction results to our [CodaLab competition](). 
+- For the `test.jsonl`, the format is similar but we hide the ground truth annotations to organize a fair evaluation challenge. To get evaluation results on the test set, you need to submit the prediction results to our [CodaLab competition](https://codalab.lisn.upsaclay.fr/competitions/8691#learn_the_details). 
 - To avoid leak the test set of the original MAVEN event detection challenge, the candidate event mentions we offered here have more than the golden annotations. But we only evaluate your predictions for the golden event mentions.
 
 ```JSON5
