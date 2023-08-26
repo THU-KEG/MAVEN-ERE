@@ -26,6 +26,7 @@ bash download_maven.sh
 bash download.sh
 cd ../
 ```
+Note that the annotations of the test set are kept disclosed to maintain a fair evaluation environment. To get evaluation results on the test set, you need to submit your predictions to CodaLab following our [instructions](## Get Test Results from CodaLab).
 
 ### Data Format
 Each `.jsonl` file is a subset of `MAVEN-ERE` and each line in the files is a json string for a document. For the `train.jsonl` and `valid.jsonl`, the json format sample is as below:
